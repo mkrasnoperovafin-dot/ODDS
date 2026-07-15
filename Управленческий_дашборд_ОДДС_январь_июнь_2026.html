@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Управленческий дашборд ОДДС · январь-июнь 2026</title>
+  <style>
+    :root{
+      --bg:#f3f5f7; --panel:#fff; --ink:#17202a; --muted:#657281; --line:#d9e0e7;
+      --green:#137a54; --red:#bd3434; --blue:#235c99; --amber:#a06100; --violet:#6d4aa2;
+      --soft-green:#e7f4ee; --soft-red:#fdeaea; --soft-blue:#e8f1fa; --soft-amber:#fff3df; --soft-violet:#f0eafd;
+      --shadow:0 1px 3px rgba(15,23,42,.07);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Segoe UI,Arial,sans-serif;letter-spacing:0}
+    .wrap{max-width:1480px;margin:0 auto;padding:24px}
+    header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}
+    h1{font-size:28px;line-height:1.15;margin:0 0 7px;font-weight:780;color:#101b29}
+    h2{font-size:18px;margin:0 0 14px;color:#172333}
+    h3{font-size:14px;margin:0 0 8px;color:#233247}
+    .sub{font-size:13px;color:var(--muted);line-height:1.45}
+    .stamp{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);box-shadow:var(--shadow)}
+    section{margin-top:16px}
+    .grid{display:grid;gap:12px}
+    .kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .two{grid-template-columns:1.25fr .75fr}
+    .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;box-shadow:var(--shadow)}
+    .kpi{min-height:132px;display:flex;flex-direction:column;justify-content:space-between}
+    .label{font-size:12px;color:var(--muted);line-height:1.3}
+    .value{font-size:25px;font-weight:780;margin:8px 0 4px;white-space:nowrap}
+    .meta{font-size:12px;color:var(--muted);line-height:1.35}
+    .good{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--amber)} .blue{color:var(--blue)}
+    .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}
+    .badge.good{background:var(--soft-green);color:var(--green)}
+    .badge.bad{background:var(--soft-red);color:var(--red)}
+    .badge.warn{background:var(--soft-amber);color:var(--amber)}
+    .badge.blue{background:var(--soft-blue);color:var(--blue)}
+    .chart{height:280px;width:100%;overflow:hidden}
+    .chart.small{height:235px}
+    svg{width:100%;height:100%;display:block}
+    .axis{stroke:#cbd4dd;stroke-width:1}.gridline{stroke:#edf1f4;stroke-width:1}
+    .legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}
+    .barrow{display:grid;grid-template-columns:minmax(150px,1fr) 3fr 82px;gap:10px;align-items:center;margin:9px 0;font-size:12px}
+    .bartrack{height:11px;background:#edf1f5;border-radius:999px;overflow:hidden}
+    .bar{height:11px;border-radius:999px;background:var(--blue)}
+    .bar.green{background:var(--green)} .bar.red{background:var(--red)} .bar.amber{background:var(--amber)} .bar.violet{background:var(--violet)}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{text-align:left;background:#f8fafc;color:#526170;font-weight:750}
+    td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .tablewrap{max-height:410px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+    .signal{border-left:4px solid var(--amber);background:#fff8ea;padding:10px 12px;border-radius:6px;font-size:13px;line-height:1.45;margin-bottom:8px}
+    .signal.bad{border-left-color:var(--red);background:var(--soft-red)}
+    .signal.good{border-left-color:var(--green);background:var(--soft-green)}
+    .insight{display:flex;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+    .insight:last-child{border-bottom:0}
+    .numchip{background:#edf4fb;color:var(--blue);font-weight:800;border-radius:999px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+    .water{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:230px;padding-top:10px}
+    .wcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:7px;font-size:11px;color:var(--muted);text-align:center}
+    .wbar{width:100%;max-width:76px;border-radius:6px 6px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;color:#fff;font-size:11px;font-weight:750;min-height:22px}
+    .heat{display:grid;grid-template-columns:1.35fr repeat(6,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:12px}
+    .heat div{padding:8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .heat .head{background:#f8fafc;font-weight:750;color:#526170}
+    .heat .cell{text-align:right;font-variant-numeric:tabular-nums}
+    .hot{background:#fdeaea;color:#9f2525}.mid{background:#fff3df;color:#7c4a00}.cool{background:#e7f4ee;color:#0f6748}
+    .callout{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mini{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;line-height:1.45}
+    .mini strong{display:block;margin-bottom:4px;color:#172333}
+    .pfgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .pfsummary{border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:#f8fafc}
+    .pfsummary.good{background:var(--soft-green);border-color:#b8ddcd}.pfsummary.bad{background:var(--soft-red);border-color:#efc0c0}
+    .pfheadline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .pfheadline strong{font-size:18px;color:#172333}.pfheadline .amount{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+    .pftext{font-size:13px;line-height:1.45;color:#354252}
+    .pfdrivers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+    .pfdriver{background:#fff;border:1px solid rgba(148,163,184,.35);border-radius:7px;padding:8px;font-size:12px;line-height:1.35}
+    .pfdriver b{display:block;font-size:14px;margin-top:3px;font-variant-numeric:tabular-nums}
+    .pfitem{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px}
+    .pfitem .top{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+    .pfitem .big{font-size:20px;font-weight:780;margin-top:6px}.pfitem .verdict{margin-top:8px;font-size:12px;font-weight:750}
+    .spark{height:8px;background:#edf1f5;border-radius:999px;overflow:hidden;margin-top:8px}.spark span{display:block;height:8px;border-radius:999px}
+    @media(max-width:1180px){.kpis{grid-template-columns:repeat(3,1fr)}.two,.three,.four,.callout,.pfdrivers{grid-template-columns:1fr}}
+    @media(max-width:720px){.wrap{padding:14px}header{display:block}.stamp{margin-top:12px}.kpis{grid-template-columns:1fr}.value{font-size:22px}.heat{grid-template-columns:150px repeat(6,80px);overflow:auto}.card{padding:12px}.barrow{grid-template-columns:1fr}.water{grid-template-columns:1fr;height:auto}.wcol{height:120px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Управленческий дашборд ОДДС</h1>
+        <div class="sub">Группа компаний · январь-июнь 2026 · суммы в млн рублей · управленческий взгляд для собственника</div>
+      </div>
+      <div class="stamp">Источник: файл «ОДДС 2026.xlsx»<br>Период: январь-июнь 2026</div>
+    </header>
+
+    <section class="grid kpis" id="kpiGrid"></section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Динамика ликвидности и чистого потока</h2>
+        <div id="flowChart" class="chart"></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#235c99"></i>остаток на конец</span>
+          <span><i class="dot" style="background:#137a54"></i>операционный поток</span>
+          <span><i class="dot" style="background:#bd3434"></i>общий поток</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Executive Summary</h2>
+        <div class="signal bad"><b>Денег стало меньше:</b> остаток снизился с 82,7 до 74,8 млн ₽, общий поток -7,9 млн ₽.</div>
+        <div class="signal good"><b>Операционная база жива:</b> бизнес сгенерировал +81,8 млн ₽ операционного потока за полугодие.</div>
+        <div class="signal"><b>Главный конфликт:</b> дивиденды 88,0 млн ₽ выше операционного потока на 6,2 млн ₽.</div>
+        <div class="signal bad"><b>Июнь требует разбора:</b> общий поток -26,9 млн ₽, операционный поток -18,3 млн ₽.</div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Waterfall: что изменило остаток денег</h2>
+        <div id="waterfall" class="water"></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#235c99"></i>остаток</span>
+          <span><i class="dot" style="background:#137a54"></i>приток</span>
+          <span><i class="dot" style="background:#bd3434"></i>отток</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Управленческие сигналы</h2>
+        <div class="callout">
+          <div class="mini"><strong>Ликвидность</strong>Кассового разрыва не было: минимальный дневной остаток 48,1 млн ₽. Но запас быстро сокращается при повторении июньского сценария.</div>
+          <div class="mini"><strong>Закупки</strong>Металл вырос с 29,0 млн ₽ в январе до 88,9 млн ₽ в июне. Это ключевой драйвер оттока.</div>
+          <div class="mini"><strong>Долг</strong>Майский результат поддержан кредитом 24,6 млн ₽. Без него лучший месяц был бы существенно слабее.</div>
+          <div class="mini"><strong>Дивиденды</strong>88,0 млн ₽ выплат нужно привязать к свободному денежному потоку, а не к бухгалтерской прибыли.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>План-факт ключевых показателей</h2>
+        <div id="planFactSummary"></div>
+        <div id="planFactKpis" class="pfgrid"></div>
+      </div>
+      <div class="card">
+        <h2>План vs факт чистого денежного потока</h2>
+        <div id="planFactChart" class="chart small"></div>
+        <div class="legend">
+          <span><i class="dot" style="background:#8da8c8"></i>план</span>
+          <span><i class="dot" style="background:#bd3434"></i>факт</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid three">
+      <div class="card"><h2>Структура поступлений</h2><div id="receipts"></div></div>
+      <div class="card"><h2>Структура платежей</h2><div id="payments"></div></div>
+      <div class="card"><h2>Top-10 расходов</h2><div id="topExpenses"></div></div>
+    </section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Помесячная динамика</h2>
+        <div class="tablewrap">
+          <table id="monthly"><thead><tr><th>Месяц</th><th>Приток факт</th><th>Отток факт</th><th>План ЧДП</th><th>Факт ЧДП</th><th>Откл. к плану</th><th>Причина</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Heatmap основных расходов</h2>
+        <div id="heatmap"></div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Денежные риски</h2>
+        <div class="tablewrap">
+          <table id="risks"><thead><tr><th>Риск</th><th>Вероятность</th><th>Влияние</th><th>Рекомендация</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Рекомендации на ближайший месяц</h2>
+        <div id="actions"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Вывод CFO</h2>
+      <div class="insight"><span class="numchip">1</span><div>Компания зарабатывает деньги операционно, но распределение прибыли и закупочный цикл забирают ликвидность быстрее, чем бизнес ее воспроизводит.</div></div>
+      <div class="insight"><span class="numchip">2</span><div>Ключевой управленческий рычаг на июль: синхронизация закупок металла, поступлений покупателей, налогов, кредитов и дивидендов в 13-недельном платежном календаре.</div></div>
+      <div class="insight"><span class="numchip">3</span><div>Приоритет собственника: не наращивать оборот любой ценой, а удержать свободный денежный поток положительным после обязательств и инвестиций.</div></div>
+    </section>
+  </div>
+
+  <script>
+    const months = ["Январь","Февраль","Март","Апрель","Май","Июнь"];
+    const shortMonths = ["Янв","Фев","Мар","Апр","Май","Июн"];
+    const data = {
+      begin: [82.7,84.6,63.1,61.3,74.6,101.7],
+      end: [84.6,63.1,61.3,74.6,101.7,74.8],
+      op: [18.4,1.1,32.6,29.9,18.1,-18.3],
+      invest: [-0.4,-1.6,-0.4,-2.3,-0.2,-0.7],
+      finance: [0.3,-0.9,-15.7,-1.2,24.4,-0.7],
+      dividends: [-16.6,-20.4,-18.5,-13.3,-15.2,-4.0],
+      total: [1.9,-21.5,-1.9,13.3,27.1,-26.9],
+      inflow: [108.4,110.8,191.9,153.0,212.0,151.3],
+      outflow: [106.7,132.5,193.9,139.9,185.0,178.6],
+      minCash: [75.0,63.1,54.1,48.1,74.6,66.7],
+      receipts: [
+        {name:"ГП", values:[90.0,77.7,146.4,116.9,149.7,119.5]},
+        {name:"Переработка", values:[10.8,19.7,23.6,26.3,22.7,13.9]},
+        {name:"Перепродажа", values:[3.7,5.5,15.1,9.3,9.6,14.1]},
+        {name:"Финансовые поступления", values:[1.3,5.7,0.7,0.5,25.3,0.7]},
+        {name:"Прочая выручка", values:[2.4,2.0,3.7,-0.7,2.8,1.3]}
+      ],
+      payments: [
+        {name:"Производство", values:[39.1,63.6,91.9,69.1,105.4,111.8]},
+        {name:"Персонал", values:[28.8,25.3,31.8,31.8,32.7,32.2]},
+        {name:"Дивиденды", values:[16.6,20.4,18.5,13.3,15.2,4.0]},
+        {name:"Содержание бизнеса", values:[9.7,14.0,12.2,13.5,10.1,12.9]},
+        {name:"Налоги", values:[7.8,0.1,20.4,4.3,9.8,10.0]},
+        {name:"Финансовые платежи", values:[1.0,6.7,16.3,1.7,0.9,1.4]},
+        {name:"Маркетинг", values:[3.3,1.0,2.3,3.9,10.7,1.9]},
+        {name:"Инвестиции", values:[0.4,1.6,0.4,2.3,0.2,0.7]}
+      ],
+      topExpenses: [
+        {name:"Металл", values:[29.0,46.7,73.7,49.3,85.3,88.9]},
+        {name:"Зарплата", values:[25.0,23.0,24.7,28.6,26.8,26.4]},
+        {name:"НДС", values:[6.6,0.1,16.9,2.1,8.9,9.1]},
+        {name:"Химия", values:[4.0,8.3,7.9,5.4,8.9,8.3]},
+        {name:"НДФЛ, взносы", values:[2.8,0.7,6.1,2.0,3.9,4.9]},
+        {name:"Прочие комиссии", values:[2.2,1.7,3.4,2.7,3.5,4.2]},
+        {name:"Электроэнергия", values:[1.7,4.7,1.7,3.9,2.4,2.9]},
+        {name:"Комплектующие", values:[0.1,1.4,1.0,3.3,2.1,3.3]},
+        {name:"Аутсорс", values:[0.0,0.1,0.2,1.3,7.0,0.9]},
+        {name:"Комиссии представителям", values:[2.8,0.0,1.4,2.1,2.9,0.1]}
+      ]
+    };
+    const plan = {
+      op: [-2.4,36.3,15.5,16.7,23.1,22.3],
+      invest: [0,0,-0.2,-2.3,-0.6,-0.8],
+      finance: [-0.4,-5.8,-15.2,-0.4,-0.4,-1.6],
+      deal: [-10.0,-8.0,-11.0,-10.0,-10.0,-10.0],
+      total: [-12.8,22.4,-11.0,4.1,12.1,10.0],
+      inflow: [109.9,155.2,161.8,164.7,182.2,177.7],
+      outflow: [122.7,132.8,172.8,160.7,170.1,167.7],
+      receipts: [
+        {name:"ГП", values:[107.8,119.2,129.1,137.9,149.8,146.6]},
+        {name:"Переработка", values:[0,29.0,28.2,22.7,25.9,29.1]},
+        {name:"Перепродажа", values:[0,0,0,0,0,0]},
+        {name:"Финансовые поступления", values:[0.6,0.7,0.8,0.6,0.5,0.7]},
+        {name:"Прочая выручка", values:[1.5,4.6,2.6,1.4,5.1,0.8]}
+      ],
+      payments: [
+        {name:"Производство", values:[62.2,70.9,84.4,90.2,96.4,89.2]},
+        {name:"Персонал", values:[27.4,28.2,34.4,28.3,29.8,30.5]},
+        {name:"Дивиденды", values:[10.0,8.0,11.0,10.0,10.0,10.0]},
+        {name:"Содержание бизнеса", values:[9.4,8.4,8.3,9.3,12.4,9.7]},
+        {name:"Налоги", values:[9.1,8.5,16.2,12.6,12.5,9.8]},
+        {name:"Финансовые платежи", values:[0.9,6.5,16.0,0.9,0.9,2.3]},
+        {name:"Маркетинг", values:[3.7,2.4,2.3,7.1,7.4,15.5]},
+        {name:"Инвестиции", values:[0,0,0.2,2.3,0.6,0.8]}
+      ],
+      topExpenses: [
+        {name:"Металл", values:[45.0,45.0,59.5,65.0,65.0,66.0]},
+        {name:"Зарплата", values:[20.3,22.4,25.1,23.6,24.3,25.4]},
+        {name:"НДС", values:[5.8,6.6,13.1,8.6,9.4,8.9]},
+        {name:"Химия", values:[12.0,15.0,10.0,7.5,12.0,12.5]},
+        {name:"НДФЛ, взносы", values:[3.6,3.8,6.8,2.8,3.0,3.3]},
+        {name:"Прочие комиссии", values:[1.5,1.3,1.7,2.3,2.8,3.0]},
+        {name:"Электроэнергия", values:[3.7,3.0,2.0,3.0,5.7,3.0]},
+        {name:"Комплектующие", values:[0,1.5,1.5,1.6,2.1,2.2]},
+        {name:"Аутсорс", values:[0,0.2,0.2,3.0,3.1,13.6]},
+        {name:"Комиссии представителям", values:[3.1,1.2,1.1,3.1,3.0,0.3]}
+      ]
+    };
+    const reasons = [
+      "Баланс поступлений и выплат, дивиденды 16,6 млн ₽.",
+      "Рост оттока: дивиденды, кредиты, производство.",
+      "Скачок поступлений съеден металлом, налогами, кредитами.",
+      "Снижение оттока, сильный операционный поток.",
+      "Лучший месяц, но поддержан кредитом 24,6 млн ₽.",
+      "Падение поступлений при высоком производственном оттоке."
+    ];
+    const monthlyActions = [
+      "Сохранить платежный календарь и проверить, какие январские выплаты были разовыми.",
+      "Разобрать причины отрицательного потока: дивиденды, кредитные платежи, закупки.",
+      "Проверить маржинальность мартовского оборота: высокий приток не дал денежного прироста.",
+      "Зафиксировать практики апреля: операционный поток сильный при умеренном оттоке.",
+      "Отделить эффект кредита от операционного результата; не считать май нормой ликвидности.",
+      "Срочно разобрать июнь: поступления, ДЗ, закупки металла, склад и график оплат."
+    ];
+
+    const sum = arr => arr.reduce((a,b)=>a+b,0);
+    const pick = (arr, idx) => idx === "all" ? sum(arr) : arr[Number(idx)];
+    const rub = v => `${v < 0 ? "-" : ""}${Math.abs(v).toLocaleString("ru-RU",{maximumFractionDigits:1})} млн ₽`;
+    const labelFor = idx => idx === "all" ? "Итого за январь-июнь" : months[Number(idx)];
+    const statusClass = v => v >= 0 ? "good" : "bad";
+
+    const toolbar = document.createElement("section");
+    toolbar.className = "card";
+    toolbar.innerHTML = `
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <div>
+          <h2 style="margin-bottom:4px">Период анализа</h2>
+          <div class="sub">Переключите месяц, чтобы пересчитать KPI, структуру поступлений и платежей.</div>
+        </div>
+        <label class="stamp" style="box-shadow:none">Показать
+          <select id="periodSelect" style="margin-left:8px;border:1px solid var(--line);border-radius:6px;padding:7px 10px;background:#fff;color:var(--ink)">
+            <option value="all">Итого за 6 месяцев</option>
+            ${months.map((m,i)=>`<option value="${i}">${m}</option>`).join("")}
+          </select>
+        </label>
+      </div>`;
+    document.querySelector("header").after(toolbar);
+
+    function lineChart(el, series, selected) {
+      const w = 900, h = 280, pad = 34;
+      const vals = series.flatMap(s => s.values);
+      const min = Math.min(-35, ...vals), max = Math.max(110, ...vals);
+      const x = i => pad + i * ((w - pad*2) / (shortMonths.length - 1));
+      const y = v => h - pad - ((v - min) / (max - min)) * (h - pad*2);
+      const path = values => values.map((v,i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join(" ");
+      const grid = [-30,0,30,60,90,120].map(v => `<line class="gridline" x1="${pad}" x2="${w-pad}" y1="${y(v)}" y2="${y(v)}"/><text x="4" y="${y(v)+4}" font-size="11" fill="#657281">${v}</text>`).join("");
+      const lines = series.map(s => `<path d="${path(s.values)}" fill="none" stroke="${s.color}" stroke-width="3"/>${s.values.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="${selected !== "all" && Number(selected)===i ? 7 : 4}" fill="${s.color}" stroke="#fff" stroke-width="1"/>`).join("")}`).join("");
+      const marker = selected === "all" ? "" : `<rect x="${x(Number(selected))-22}" y="8" width="44" height="${h-42}" rx="6" fill="#235c99" opacity=".06"/>`;
+      const labels = shortMonths.map((m,i)=>`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="12" fill="${selected !== "all" && Number(selected)===i ? "#17202a" : "#657281"}" font-weight="${selected !== "all" && Number(selected)===i ? "800" : "400"}">${m}</text>`).join("");
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${marker}${grid}<line class="axis" x1="${pad}" x2="${w-pad}" y1="${y(0)}" y2="${y(0)}"/>${lines}${labels}</svg>`;
+    }
+
+    function bars(el, items, colorClass="blue"){
+      const safe = items.filter(i => Math.abs(i.value) > 0.0001).sort((a,b)=>b.value-a.value);
+      const max = Math.max(...safe.map(i=>Math.abs(i.value)), 1);
+      el.innerHTML = safe.map(i => `<div class="barrow"><div>${i.name}</div><div class="bartrack"><div class="bar ${colorClass}" style="width:${Math.abs(i.value)/max*100}%"></div></div><div class="num">${rub(i.value).replace(" млн ₽","")}</div></div>`).join("");
+    }
+
+    function planFactChart(el, selected) {
+      const w = 900, h = 235, pad = 34;
+      const vals = [...plan.total, ...data.total];
+      const min = Math.min(-32, ...vals), max = Math.max(30, ...vals);
+      const x = i => pad + i * ((w - pad*2) / (shortMonths.length - 1));
+      const y = v => h - pad - ((v - min) / (max - min)) * (h - pad*2);
+      const path = values => values.map((v,i) => `${i ? "L" : "M"}${x(i)},${y(v)}`).join(" ");
+      const grid = [-30,-15,0,15,30].map(v => `<line class="gridline" x1="${pad}" x2="${w-pad}" y1="${y(v)}" y2="${y(v)}"/><text x="4" y="${y(v)+4}" font-size="11" fill="#657281">${v}</text>`).join("");
+      const marker = selected === "all" ? "" : `<rect x="${x(Number(selected))-22}" y="8" width="44" height="${h-42}" rx="6" fill="#235c99" opacity=".06"/>`;
+      const labels = shortMonths.map((m,i)=>`<text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="12" fill="#657281">${m}</text>`).join("");
+      el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${marker}${grid}<line class="axis" x1="${pad}" x2="${w-pad}" y1="${y(0)}" y2="${y(0)}"/><path d="${path(plan.total)}" fill="none" stroke="#8da8c8" stroke-width="3"/><path d="${path(data.total)}" fill="none" stroke="#bd3434" stroke-width="3"/>${plan.total.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#8da8c8"/>`).join("")}${data.total.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="${selected !== "all" && Number(selected)===i ? 7 : 4}" fill="#bd3434" stroke="#fff" stroke-width="1"/>`).join("")}${labels}</svg>`;
+    }
+
+    function renderPlanFact(idx) {
+      const isAll = idx === "all";
+      const metrics = [
+        ["Чистый денежный поток", pick(plan.total, idx), pick(data.total, idx), true, "Главный результат периода"],
+        ["Операционный поток", pick(plan.op, idx), pick(data.op, idx), true, "Качество основной деятельности"],
+        ["Поступления", pick(plan.inflow, idx), pick(data.inflow, idx), true, "Инкассация и финансовые поступления"],
+        ["Платежи", pick(plan.outflow, idx), pick(data.outflow, idx), false, "Денежная дисциплина по оплатам"],
+        ["Финансовый поток", pick(plan.finance, idx), pick(data.finance, idx), true, "Кредиты, займы и проценты"],
+        ["Дивиденды", Math.abs(pick(plan.deal, idx)), Math.abs(pick(data.dividends, idx)), false, "Нагрузка на свободные деньги"]
+      ];
+      const totalPlan = metrics[0][1];
+      const totalFact = metrics[0][2];
+      const totalDelta = totalFact - totalPlan;
+      const ok = totalDelta >= 0;
+      const opDelta = metrics[1][2] - metrics[1][1];
+      const inflowDelta = metrics[2][2] - metrics[2][1];
+      const paymentDelta = metrics[3][2] - metrics[3][1];
+      const dividendDelta = metrics[5][2] - metrics[5][1];
+      const largest = [
+        ["операционный поток", opDelta, true],
+        ["поступления", inflowDelta, true],
+        ["платежи", paymentDelta, false],
+        ["дивиденды", dividendDelta, false]
+      ].sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+      const largestText = largest[2]
+        ? `${largest[0]} ${largest[1] >= 0 ? "лучше" : "хуже"} плана на ${rub(Math.abs(largest[1]))}`
+        : `${largest[0]} ${largest[1] <= 0 ? "ниже" : "выше"} плана на ${rub(Math.abs(largest[1]))}`;
+      document.querySelector("#planFactSummary").innerHTML = `
+        <div class="pfsummary ${ok ? "good" : "bad"}">
+          <div class="pfheadline">
+            <strong>${ok ? "План по деньгам выполнен" : "План по деньгам не выполнен"}</strong>
+            <span class="amount ${ok ? "good" : "bad"}">${rub(totalDelta)}</span>
+          </div>
+          <div class="pftext">План чистого денежного потока: <b>${rub(totalPlan)}</b>, факт: <b>${rub(totalFact)}</b>. Ключевой драйвер отклонения: <b>${largestText}</b>.</div>
+          <div class="pfdrivers">
+            <div class="pfdriver">Операционный поток к плану<b class="${opDelta >= 0 ? "good" : "bad"}">${rub(opDelta)}</b></div>
+            <div class="pfdriver">Поступления к плану<b class="${inflowDelta >= 0 ? "good" : "bad"}">${rub(inflowDelta)}</b></div>
+            <div class="pfdriver">Платежи к плану<b class="${paymentDelta <= 0 ? "good" : "bad"}">${rub(paymentDelta)}</b></div>
+          </div>
+        </div>`;
+      document.querySelector("#planFactKpis").innerHTML = metrics.map(([name, p, f, higherBetter, hint]) => {
+        const delta = f - p;
+        const good = higherBetter ? delta >= 0 : delta <= 0;
+        const percent = Math.abs(p) > 0.0001 ? `${(delta / Math.abs(p) * 100).toLocaleString("ru-RU",{maximumFractionDigits:0})}%` : "н/д";
+        const ratio = Math.min(100, Math.abs(f) / Math.max(Math.abs(p), Math.abs(f), 1) * 100);
+        const verdict = good ? "лучше / в рамках плана" : "хуже плана, нужен разбор";
+        return `<div class="pfitem">
+          <div class="top"><span>${name}</span><span>${labelFor(idx)}</span></div>
+          <div class="big ${good ? "good" : "bad"}">${rub(delta)}</div>
+          <div class="meta">${hint}<br>План ${rub(p)} · факт ${rub(f)} · откл. ${percent}</div>
+          <div class="spark"><span style="width:${ratio}%;background:${good ? "#137a54" : "#bd3434"}"></span></div>
+          <div class="verdict ${good ? "good" : "bad"}">${verdict}</div>
+        </div>`;
+      }).join("");
+      planFactChart(document.querySelector("#planFactChart"), idx);
+    }
+
+    function renderKpis(idx) {
+      const isAll = idx === "all";
+      const begin = isAll ? data.begin[0] : data.begin[Number(idx)];
+      const end = isAll ? data.end[5] : data.end[Number(idx)];
+      const total = pick(data.total, idx);
+      const op = pick(data.op, idx);
+      const invest = pick(data.invest, idx);
+      const finance = pick(data.finance, idx);
+      const dividends = Math.abs(pick(data.dividends, idx));
+      const inflow = pick(data.inflow, idx);
+      const outflow = pick(data.outflow, idx);
+      const minCash = isAll ? Math.min(...data.minCash) : data.minCash[Number(idx)];
+      const avg = isAll ? total / 6 : total;
+      const kpis = [
+        ["Период", labelFor(idx), isAll ? "Сводный вид по полугодию." : `Детализация за ${months[Number(idx)].toLowerCase()}.`, "blue"],
+        ["Остаток на начало", rub(begin), "Денежная подушка на входе периода.", "blue"],
+        ["Остаток на конец", rub(end), `Изменение к началу: ${rub(end-begin)}.`, statusClass(end-begin)],
+        ["Общий поток", rub(total), total >= 0 ? "Деньги за период выросли." : "Деньги за период снизились.", statusClass(total)],
+        ["Операционный поток", rub(op), op >= 0 ? "Операционная деятельность генерирует деньги." : "Операционная деятельность потребляет деньги.", statusClass(op)],
+        ["Инвестиционный поток", rub(invest), "CAPEX и вложения в развитие.", invest < -2 ? "warn" : "blue"],
+        ["Финансовый поток", rub(finance), finance > 5 ? "Существенная поддержка заемными/финансовыми поступлениями." : "Долг и финансовые операции без резкого эффекта.", finance >= 0 ? "blue" : "warn"],
+        ["Дивиденды", rub(dividends), isAll ? "88,0 млн ₽ за 6 месяцев при плане 59,0 млн ₽." : `План месяца: ${rub(Math.abs(plan.deal[Number(idx)]))}.`, dividends > Math.max(op,0) ? "bad" : "warn"],
+        ["Приток / отток", `${rub(inflow)} / ${rub(outflow)}`, "Сравнение денежного входа и выхода.", inflow >= outflow ? "good" : "bad"],
+        ["Мин. дневной остаток", rub(minCash), "Оценка риска кассового разрыва.", minCash < 50 ? "warn" : "good"]
+      ];
+      document.querySelector("#kpiGrid").innerHTML = kpis.map(k => `
+        <div class="card kpi">
+          <div><div class="label">${k[0]}</div><div class="value ${k[3]}">${k[1]}</div></div>
+          <div class="meta"><span class="badge ${k[3]}">${k[3]==="good"?"позитив":k[3]==="bad"?"риск":k[3]==="warn"?"контроль":"факт"}</span><br>${k[2]}</div>
+        </div>`).join("");
+    }
+
+    function renderSummary(idx) {
+      const summaryCard = Array.from(document.querySelectorAll(".card")).find(card => card.querySelector("h2")?.textContent.includes("Executive"));
+      if (!summaryCard) return;
+      const isAll = idx === "all";
+      const i = Number(idx);
+      const title = isAll ? "Денег стало меньше" : (data.total[i] >= 0 ? "Денег стало больше" : "Денег стало меньше");
+      const flow = isAll ? -7.9 : data.total[i];
+      const op = isAll ? sum(data.op) : data.op[i];
+      const div = isAll ? 88.0 : Math.abs(data.dividends[i]);
+      const reason = isAll
+        ? `факт чистого потока ${rub(sum(data.total))} против плана ${rub(sum(plan.total))}; основное отклонение связано с недобором ОДП и превышением дивидендов.`
+        : `${reasons[i]} План чистого потока: ${rub(plan.total[i])}, факт: ${rub(data.total[i])}.`;
+      summaryCard.innerHTML = `
+        <h2>Executive Summary · ${labelFor(idx)}</h2>
+        <div class="signal ${flow >= 0 ? "good" : "bad"}"><b>${title}:</b> чистый поток ${rub(flow)}.</div>
+        <div class="signal ${op >= 0 ? "good" : "bad"}"><b>Операционная деятельность:</b> ${rub(op)}.</div>
+        <div class="signal"><b>Причина:</b> ${reason}</div>
+        <div class="signal ${div > Math.max(op,0) ? "bad" : ""}"><b>Дивиденды:</b> ${rub(div)}; ${div > Math.max(op,0) ? "выше операционного потока периода." : "покрываются операционным потоком периода."}</div>`;
+    }
+
+    function renderWaterfall(idx) {
+      const isAll = idx === "all";
+      const begin = isAll ? data.begin[0] : data.begin[Number(idx)];
+      const op = pick(data.op, idx);
+      const finance = pick(data.finance, idx);
+      const invest = pick(data.invest, idx);
+      const div = pick(data.dividends, idx);
+      const total = pick(data.total, idx);
+      const other = total - op - finance - invest - div;
+      const end = isAll ? data.end[5] : data.end[Number(idx)];
+      const wf = [["Старт",begin,"#235c99"],["ОДП",op,"#137a54"],["Фин.",finance,finance>=0?"#137a54":"#bd3434"],["CAPEX",invest,"#bd3434"],["Дивиденды",div,"#bd3434"],["Прочее",other,other>=0?"#137a54":"#bd3434"],["Финиш",end,"#235c99"]];
+      const max = Math.max(...wf.map(x=>Math.abs(x[1])), 1);
+      document.querySelector("#waterfall").innerHTML = wf.map(([name,val,color]) => {
+        const height = Math.max(24, Math.min(190, Math.abs(val) / max * 190));
+        return `<div class="wcol"><div class="wbar" style="height:${height}px;background:${color}">${rub(val).replace(" млн ₽","")}</div><div>${name}</div></div>`;
+      }).join("");
+    }
+
+    function renderStructures(idx) {
+      const toItems = rows => rows.map(r => ({name:r.name, value:pick(r.values, idx)}));
+      bars(document.querySelector("#receipts"), toItems(data.receipts), "green");
+      bars(document.querySelector("#payments"), toItems(data.payments), "red");
+      bars(document.querySelector("#topExpenses"), toItems(data.topExpenses).slice().sort((a,b)=>b.value-a.value).slice(0,10), "amber");
+    }
+
+    function renderMonthlyTable(idx) {
+      const tbody = document.querySelector("#monthly tbody");
+      tbody.innerHTML = months.map((m,i)=>{
+        const deltaPlan = data.total[i]-plan.total[i];
+        const selected = idx !== "all" && Number(idx) === i;
+        const style = selected ? ' style="background:#eef4fb;font-weight:700"' : "";
+        return `<tr${style}><td>${m}</td><td class="num">${rub(data.inflow[i])}</td><td class="num">${rub(data.outflow[i])}</td><td class="num">${rub(plan.total[i])}</td><td class="num ${statusClass(data.total[i])}">${rub(data.total[i])}</td><td class="num ${deltaPlan >= 0 ? "good" : "bad"}">${rub(deltaPlan)}</td><td>${reasons[i]}</td></tr>`;
+      }).join("");
+    }
+
+    function renderHeatmap(idx) {
+      const rows = data.topExpenses.slice(0,6);
+      const maxHeat = Math.max(...rows.flatMap(r=>r.values));
+      document.querySelector("#heatmap").innerHTML = `<div class="heat"><div class="head">Статья</div>${shortMonths.map((m,i)=>`<div class="head" style="${idx !== "all" && Number(idx)===i ? "background:#e8f1fa;color:#17202a" : ""}">${m}</div>`).join("")}${rows.map(r=>`<div>${r.name}</div>${r.values.map((v,i)=>`<div class="cell ${v/maxHeat>.55?"hot":v/maxHeat>.22?"mid":"cool"}" style="${idx !== "all" && Number(idx)===i ? "outline:2px solid #235c99;outline-offset:-2px" : ""}">${v.toLocaleString("ru-RU",{maximumFractionDigits:1})}</div>`).join("")}`).join("")}</div>`;
+    }
+
+    function renderRisksAndActions(idx) {
+      const risks = idx === "all" ? [
+        ["Повтор отрицательного операционного потока июня","Средняя","Высокое","Еженедельный контроль продаж, ДЗ и закупок."],
+        ["Перегрузка закупками металла","Высокая","Высокое","Лимит оплат и закупка под подтвержденный заказ."],
+        ["Дивиденды выше свободного cash flow","Высокая","Высокое","Выплаты только после резервов, налогов, долгов и CAPEX."],
+        ["Зависимость от кредита","Средняя","Среднее/высокое","Кредит использовать под понятный цикл возврата."],
+        ["Пики налогов и долговых платежей","Средняя","Среднее","13-недельный календарь обязательных платежей."]
+      ] : [
+        [`Риск месяца: ${months[Number(idx)]}`, data.total[Number(idx)] < 0 ? "Высокая" : "Средняя", data.total[Number(idx)] < 0 ? "Высокое" : "Среднее", monthlyActions[Number(idx)]],
+        ["Закупки металла", data.topExpenses[0].values[Number(idx)] > 70 ? "Высокая" : "Средняя", "Высокое", "Сверить закупки с заказами, складом и ближайшей инкассацией."],
+        ["Дивиденды", Math.abs(data.dividends[Number(idx)]) > Math.max(data.op[Number(idx)],0) ? "Высокая" : "Средняя", "Высокое", "Платить только из свободного денежного потока после обязательств."]
+      ];
+      document.querySelector("#risks tbody").innerHTML = risks.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("");
+      const actions = idx === "all" ? [
+        ["Высокий","Ввести 13-недельный платежный календарь","Предупреждение кассовых провалов","1 неделя"],
+        ["Высокий","Утвердить лимит закупок металла","Высвобождение оборотки 10-20 млн ₽","2 недели"],
+        ["Высокий","Пересчитать график дивидендов","Сохранение ликвидности","1 месяц"],
+        ["Высокий","Разобрать июньский провал по ДЗ, складу и оплатам","Понимание причины отрицательного ОДП","1 неделя"]
+      ] : [
+        ["Высокий", monthlyActions[Number(idx)], "Устранение причины отклонения месяца", "1 неделя"],
+        ["Средний","Сверить топ-5 платежей месяца с бюджетом и календарем поступлений","Снижение риска повторения пика оттока","2 недели"],
+        ["Средний","Проверить, какие платежи можно перенести без ущерба производству","Сохранение ликвидной подушки","1 неделя"]
+      ];
+      document.querySelector("#actions").innerHTML = actions.map((a,i)=>`
+        <div class="insight"><span class="numchip">${i+1}</span><div><b>${a[0]}:</b> ${a[1]}<br><span class="meta">Эффект: ${a[2]}. Срок: ${a[3]}.</span></div></div>
+      `).join("");
+    }
+
+    function render(idx="all") {
+      renderKpis(idx);
+      renderSummary(idx);
+      lineChart(document.querySelector("#flowChart"), [
+        {values:data.end,color:"#235c99"},
+        {values:data.op,color:"#137a54"},
+        {values:data.total,color:"#bd3434"}
+      ], idx);
+      renderWaterfall(idx);
+      renderPlanFact(idx);
+      renderStructures(idx);
+      renderMonthlyTable(idx);
+      renderHeatmap(idx);
+      renderRisksAndActions(idx);
+    }
+
+    document.querySelector("#periodSelect").addEventListener("change", e => render(e.target.value));
+    render("all");
+  </script>
+</body>
+</html>
